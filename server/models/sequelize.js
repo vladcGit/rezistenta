@@ -1,0 +1,33 @@
+const { Sequelize } = require('sequelize');
+
+/**
+ *  @type Sequelize
+ */
+let sequelize;
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    define: {
+      timestamps: false,
+    },
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  });
+} else {
+  sequelize = new Sequelize({
+    storage: 'models/database.db',
+    dialect: 'sqlite',
+    define: {
+      timestamps: false,
+    },
+    logging: false,
+  });
+}
+
+module.exports = sequelize;
