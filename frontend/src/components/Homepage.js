@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Button, Paper, TextField, Typography } from '@mui/material';
-import Appbar from './Appbar';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Appbar from './Appbar';
 
 export default function Homepage() {
   const SERVER = process.env.REACT_APP_SERVER_NAME;
@@ -30,6 +30,7 @@ export default function Homepage() {
     );
     navigate(`/room/${code}`);
   };
+
   return (
     <Box
       sx={{

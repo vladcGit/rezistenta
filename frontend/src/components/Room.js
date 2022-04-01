@@ -12,6 +12,7 @@ import { Box } from '@mui/system';
 import { useParams } from 'react-router-dom';
 import Appbar from './Appbar';
 import axios from 'axios';
+import { w3cwebsocket } from 'websocket';
 
 export default function Room() {
   const SERVER = process.env.REACT_APP_SERVER_NAME;
@@ -19,55 +20,74 @@ export default function Room() {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
 
+  //websocket
+  useEffect(() => {
+    const client = new w3cwebsocket('ws://localhost:3001/', 'echo-protocol');
+    let timer;
+    client.onopen = () => {
+      console.log('WebSocket Client Connected');
+      timer = setInterval(() => {
+        client.send(JSON.stringify({ id }));
+      }, 2000);
+    };
+    client.onmessage = (message) => {
+      // console.log(JSON.parse(message.data));
+      setRoom(JSON.parse(message.data));
+    };
+    return () => clearInterval(timer);
+  }, [id]);
+
+  /*
   useEffect(() => {
     // varianta cu sse care nu merge pentru ca nu se actualizeaza obiectul trimis
-    /*
-    const source = new EventSource(`${SERVER}/room/${id}/events`);
+    
+    // const source = new EventSource(`${SERVER}/room/${id}/events`);
 
-    source.addEventListener('open', () => {
-      console.log('SSE opened!');
-    });
+    // source.addEventListener('open', () => {
+    //   console.log('SSE opened!');
+    // });
 
-    source.addEventListener('message', (e) => {
-      const data = JSON.parse(e.data);
+    // source.addEventListener('message', (e) => {
+    //   const data = JSON.parse(e.data);
 
-      const players = data.Players.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      console.log(players);
+    //   const players = data.Players.sort(
+    //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    //   );
+    //   console.log(players);
 
-      const timestamp = new Date(players[0].createdAt || '');
+    //   const timestamp = new Date(players[0].createdAt || '');
 
-      let diferentaTimp;
+    //   let diferentaTimp;
 
-      if (!lastUpdate) diferentaTimp = 100;
-      else diferentaTimp = timestamp.getTime() - lastUpdate.getTime();
+    //   if (!lastUpdate) diferentaTimp = 100;
+    //   else diferentaTimp = timestamp.getTime() - lastUpdate.getTime();
 
-      if (diferentaTimp > 0) {
-        console.log(data);
-        setRoom(data);
-        setLastUpdate(timestamp);
-      }
-    });
+    //   if (diferentaTimp > 0) {
+    //     console.log(data);
+    //     setRoom(data);
+    //     setLastUpdate(timestamp);
+    //   }
+    // });
 
-    source.addEventListener('error', (e) => {
-      console.error('Error: ', e);
-    });
+    // source.addEventListener('error', (e) => {
+    //   console.error('Error: ', e);
+    // });
 
-    return () => {
-      source.close();
-    };
-    */
-    const requestInterval = 2000;
+    // return () => {
+    //   source.close();
+    // };
+    
+    // const requestInterval = 2000;
 
-    const timer = setInterval(() => {
-      axios.get(`${SERVER}/room/${id}`).then((res) => {
-        setRoom(res.data);
-      });
-    }, requestInterval);
+    // const timer = setInterval(() => {
+    //   axios.get(`${SERVER}/room/${id}`).then((res) => {
+    //     setRoom(res.data);
+    //   });
+    // }, requestInterval);
 
-    return () => clearInterval(timer);
+    // return () => clearInterval(timer);
   }, [SERVER, id]);
+*/
 
   return (
     <Box
