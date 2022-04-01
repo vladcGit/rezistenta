@@ -1,6 +1,7 @@
 const sequelize = require('./sequelize');
 const { DataTypes } = require('sequelize');
 const Player = require('./Player');
+const Mission = require('./Mission');
 
 const Room = sequelize.define('Room', {
   id: {
@@ -15,5 +16,6 @@ const Room = sequelize.define('Room', {
 });
 
 Room.hasMany(Player, { onDelete: 'CASCADE' });
+Room.hasMany(Mission, { onDelete: 'CASCADE' });
 
 module.exports = Room;

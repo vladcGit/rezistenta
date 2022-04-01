@@ -13,7 +13,7 @@ require('./models/Room');
 require('./models/Vote');
 
 //import rute
-app.use('/room', require('./routes/RoomRoutes'));
+app.use('/api/room', require('./routes/RoomRoutes'));
 
 app.get('/', (req, res) => {
   res.send('hello');
