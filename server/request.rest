@@ -11,3 +11,5 @@ Content-Type: application/json
 GET http://localhost:3001 HTTP/1.1
 ###
 GET http://localhost:3001/api/room/3857 HTTP/1.1
+###
+GET http://localhost:3001/api/room/6449/start HTTP/1.1

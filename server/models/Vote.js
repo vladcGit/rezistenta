@@ -9,6 +9,10 @@ const Vote = sequelize.define('Vote', {
     primaryKey: true,
     autoIncrement: true,
   },
+  result: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+  },
 });
 
 Player.hasMany(Vote, { onDelete: 'CASCADE' });

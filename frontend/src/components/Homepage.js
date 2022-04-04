@@ -19,6 +19,7 @@ export default function Homepage() {
       { name },
       { headers: { 'Content-Type': 'application/json' } }
     );
+    localStorage.setItem('data', JSON.stringify({ id, name }));
     navigate(`/room/${id}`);
   };
 
@@ -28,6 +29,7 @@ export default function Homepage() {
       { name },
       { headers: { 'Content-Type': 'application/json' } }
     );
+    localStorage.setItem('data', JSON.stringify({ code, name }));
     navigate(`/room/${code}`);
   };
 

@@ -8,6 +8,11 @@ const Room = sequelize.define('Room', {
     type: DataTypes.INTEGER,
     primaryKey: true,
   },
+  is_started: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
   is_finished: {
     type: DataTypes.BOOLEAN,
     allowNull: false,

@@ -9,16 +9,22 @@ import {
   Typography,
 } from '@mui/material';
 import { Box } from '@mui/system';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Appbar from './Appbar';
 import axios from 'axios';
 import { w3cwebsocket } from 'websocket';
 
 export default function Room() {
   const SERVER = process.env.REACT_APP_SERVER_NAME;
+  const navigate = useNavigate();
 
   const { id } = useParams();
   const [room, setRoom] = useState(null);
+
+  const handleStartGame = async () => {
+    await axios.get(`${SERVER}/room/${id}/start`);
+    navigate(`/room/${id}/game`);
+  };
 
   //websocket
   useEffect(() => {
@@ -32,10 +38,12 @@ export default function Room() {
     };
     client.onmessage = (message) => {
       // console.log(JSON.parse(message.data));
-      setRoom(JSON.parse(message.data));
+      const data = JSON.parse(message.data);
+      setRoom(data);
+      if (data.is_started) navigate(`/room/${id}/game`);
     };
     return () => clearInterval(timer);
-  }, [id]);
+  }, [id, navigate]);
 
   /*
   useEffect(() => {
@@ -122,7 +130,7 @@ export default function Room() {
         <Typography variant='h3' mb='30px'>
           The code is: {id}
         </Typography>
-        <Button variant='contained' color='primary'>
+        <Button variant='contained' color='primary' onClick={handleStartGame}>
           Start
         </Button>
         <Container sx={{ py: 8 }} maxWidth='md'>
