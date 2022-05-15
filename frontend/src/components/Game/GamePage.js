@@ -8,12 +8,14 @@ import {
   Group,
   useMantineTheme,
   Button,
+  Loader,
 } from '@mantine/core';
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { w3cwebsocket } from 'websocket';
+import Mission from './Mission';
 import Players from './Players';
 
 const BREAKPOINT = '@media (max-width: 755px)';
@@ -88,6 +90,7 @@ export default function GamePage() {
   const [mission, setMission] = useState(null);
   const [loadingCreateMission, setLoadingCreateMission] = useState(false);
   const [loadingVoteMission, setLoadingVoteMission] = useState(false);
+  const [loadingResultMission, setLoadingResultMission] = useState(false);
 
   const { classes } = useStyles();
   const { colors } = useMantineTheme();
@@ -103,27 +106,26 @@ export default function GamePage() {
       }, 2000);
     };
     client.onmessage = (message) => {
-      //   console.log(JSON.parse(message.data));
-      setRoom(JSON.parse(message.data));
+      const data = JSON.parse(message.data);
+      setRoom(data);
+      if (data.Missions.length > 0) {
+        setMission(data.Missions.filter((m) => m.is_success === -1)[0]);
+      } else setMission(null);
     };
     return () => clearInterval(timer);
   }, [id]);
 
   //get user
   useEffect(() => {
-    if (!user && room) {
+    if (room) {
       const { name } = JSON.parse(localStorage.getItem('data'));
       const _user = room.Players.filter((player) => player.name === name)[0];
       setUser(_user);
       const _spies = room.Players.filter((player) => player.is_spy);
       setSpies(_spies);
     }
+    // console.log(room);
   }, [room, user]);
-
-  const fetchMission = async (id) => {
-    const res = await axios.get(`/api/mission/${id}`);
-    setMission(res.data);
-  };
 
   const PropunerePlecare = () => {
     const necesarJucatori = [
@@ -133,7 +135,9 @@ export default function GamePage() {
       [3, 3, 4, 5, 5, 5],
       [3, 4, 4, 5, 5, 5],
     ];
-    const misiuniPrecedente = room.Missions.map((m) => m.is_starting).length;
+    const misiuniPrecedente = room.Missions.map(
+      (m) => m.is_starting === 1
+    ).length;
     const numarJucatori =
       necesarJucatori[misiuniPrecedente][room.Players.length - 5];
 
@@ -204,8 +208,6 @@ export default function GamePage() {
   };
 
   const VotPlecare = () => {
-    if (!mission) fetchMission(room.Missions[room.Missions.length - 1].id);
-
     const voteazaPlecare = async (result) => {
       setLoadingVoteMission(true);
       await axios.post(`/api/mission/vote`, {
@@ -254,31 +256,101 @@ export default function GamePage() {
     );
   };
 
+  const PlecareFaraTine = () => {
+    return (
+      <Container>
+        <Text size='xl'>Wait for the result of the mission</Text>
+        <Loader size='xl' />
+      </Container>
+    );
+  };
+
+  const Plecare = () => {
+    const sendResultOfMission = async (result) => {
+      setLoadingResultMission(true);
+      await axios.post(`/api/mission/result/${mission.id}`, { result });
+    };
+    return (
+      <Container>
+        <h2 className={classes.description}>
+          Vote for the result of the mission
+        </h2>
+        <Button
+          m='xl'
+          size='lg'
+          loading={loadingResultMission}
+          onClick={() => sendResultOfMission(true)}
+        >
+          Success
+        </Button>
+
+        {spies.map((s) => s.id).includes(user.id) && (
+          <Button
+            m='xl'
+            size='lg'
+            color='red'
+            loading={loadingResultMission}
+            onClick={() => sendResultOfMission(false)}
+          >
+            Fail
+          </Button>
+        )}
+      </Container>
+    );
+  };
+
   return (
     <div className={classes.wrapper}>
-      {user && (
+      {user && room && (
         <Container
           className={classes.inner}
           // sx={{ backgroundColor: user.is_spy ? colors.red[6] : colors.blue[9] }}
         >
           <h1 className={classes.title}>
             You are a{' '}
-            {user.is_spy
-              ? `spy, with ${spies
+            {user.is_spy ? (
+              <Text
+                component='span'
+                variant='gradient'
+                gradient={{ from: colors.red[9], to: colors.red[8] }}
+                inherit
+              >
+                spy, with{' '}
+                {spies
                   .filter((spy) => spy.name !== user.name)
                   .map((spy) => spy.name)
-                  .join(', ')}`
-              : 'resistance member 🔫'}
+                  .join(', ')}
+              </Text>
+            ) : (
+              <Text
+                component='span'
+                variant='gradient'
+                gradient={{ from: 'blue', to: 'cyan' }}
+                inherit
+              >
+                resistance member
+              </Text>
+            )}
           </h1>
-          <Players room={room} />
+          <Players room={room} userId={user.id} />
           <Divider my='xl' />
-          {room &&
-          user.is_lider &&
-          room.Missions[room.Missions.length - 1]?.id_creator === user.id ? (
-            <VotPlecare />
-          ) : (
-            <PropunerePlecare />
-          )}
+          {room.Missions?.length > 0 &&
+            room.Missions.filter((m) => m.is_success !== -1).map((misiune) => (
+              <Mission mission={misiune} key={misiune.id} />
+            ))}
+          {user.is_lider &&
+            mission?.id_creator !== user.id &&
+            mission?.is_starting !== -1 && <PropunerePlecare />}
+
+          {mission?.is_starting === -1 && <VotPlecare />}
+          {mission &&
+            mission.is_starting === 1 &&
+            mission.is_success === -1 &&
+            (mission.Players.map((p) => p.id).includes(user.id) ? (
+              <Plecare />
+            ) : (
+              <PlecareFaraTine />
+            ))}
         </Container>
       )}
     </div>

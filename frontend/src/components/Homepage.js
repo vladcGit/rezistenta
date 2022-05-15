@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import { createStyles, Container, Text, Button, Input } from '@mantine/core';
-import updateGradient from '../gradient';
+import updateGradient from './gradient';
 import { hexToRgb } from '../util';
 
 const BREAKPOINT = '@media (max-width: 755px)';

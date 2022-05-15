@@ -1,3 +1,5 @@
+import { hexToRgb } from '../util';
+
 // const colors = [
 //   [62, 35, 255],
 //   [60, 255, 60],
@@ -6,8 +8,6 @@
 //   [255, 0, 255],
 //   [255, 128, 0],
 // ];
-
-import { hexToRgb } from './util';
 
 const colors = [
   hexToRgb('117DAA'),

@@ -10,14 +10,16 @@ const Mission = sequelize.define('Mission', {
     autoIncrement: true,
   },
   is_starting: {
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: -1,
+    validate: { isIn: [[-1, 0, 1]] },
   },
   is_success: {
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: -1,
+    validate: { isIn: [[-1, 0, 1]] },
   },
   id_creator: {
     type: DataTypes.INTEGER,

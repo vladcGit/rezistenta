@@ -20,6 +20,7 @@ const useStyles = createStyles((theme) => ({
     boxSizing: 'border-box',
     backgroundColor:
       theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.white,
+    minHeight: '100vh',
   },
 
   inner: {
@@ -104,9 +105,12 @@ export default function Room() {
           Share the code with your friends and when you are ready press start
         </h1>
         <h1 className={classes.description}>The code is: {id}</h1>
-        <Button variant='filled' size='lg' onClick={handleStartGame}>
-          Start
-        </Button>
+        {room?.Players[0]?.name ===
+          JSON.parse(localStorage.getItem('data')).name && (
+          <Button variant='filled' size='lg' onClick={handleStartGame}>
+            Start
+          </Button>
+        )}
       </Container>
       <Container my='md'>
         <Grid>

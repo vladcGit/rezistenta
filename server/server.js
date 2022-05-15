@@ -43,7 +43,10 @@ wsServer.on('request', function (request) {
         const { id } = JSON.parse(message.utf8Data);
 
         const room = await Room.findByPk(parseInt(id), {
-          include: [{ model: Player, include: [Vote] }, { model: Mission }],
+          include: [
+            { model: Player },
+            { model: Mission, include: [Player, Vote] },
+          ],
         });
 
         connection.sendUTF(JSON.stringify(room));
