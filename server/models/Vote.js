@@ -1,7 +1,5 @@
 const sequelize = require('./sequelize');
 const { DataTypes } = require('sequelize');
-const Player = require('./Player');
-const Mission = require('./Mission');
 
 const Vote = sequelize.define('Vote', {
   id: {
@@ -14,8 +12,5 @@ const Vote = sequelize.define('Vote', {
     allowNull: false,
   },
 });
-
-Player.hasMany(Vote, { onDelete: 'CASCADE' });
-Mission.hasMany(Vote, { onDelete: 'CASCADE' });
 
 module.exports = Vote;

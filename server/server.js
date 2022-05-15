@@ -15,6 +15,7 @@ const Vote = require('./models/Vote');
 
 //import rute
 app.use('/api/room', require('./routes/RoomRoutes'));
+app.use('/api/mission', require('./routes/missionRoutes'));
 
 app.get('/', (req, res) => {
   res.send('hello');

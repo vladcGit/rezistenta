@@ -1,28 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  Paper,
-  Typography,
-} from '@mui/material';
-import { Box } from '@mui/system';
 import { useNavigate, useParams } from 'react-router-dom';
-import Appbar from './Appbar';
 import axios from 'axios';
 import { w3cwebsocket } from 'websocket';
+import {
+  Button,
+  Grid,
+  Container,
+  Text,
+  createStyles,
+  Group,
+  Card,
+  useMantineTheme,
+} from '@mantine/core';
+const BREAKPOINT = '@media (max-width: 755px)';
+
+const useStyles = createStyles((theme) => ({
+  wrapper: {
+    position: 'relative',
+    boxSizing: 'border-box',
+    backgroundColor:
+      theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.white,
+  },
+
+  inner: {
+    position: 'relative',
+    textAlign: 'center',
+    paddingTop: 100,
+    paddingBottom: 120,
+
+    [BREAKPOINT]: {
+      paddingBottom: 80,
+      paddingTop: 80,
+    },
+  },
+
+  title: {
+    fontFamily: `Greycliff CF, ${theme.fontFamily}`,
+    fontSize: 50,
+    fontWeight: 900,
+    lineHeight: 1.1,
+    margin: 0,
+    padding: 0,
+    color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+    marginBottom: '30px',
+
+    [BREAKPOINT]: {
+      fontSize: 42,
+      lineHeight: 1.2,
+    },
+  },
+
+  description: {
+    marginTop: theme.spacing.xl,
+    marginBottom: '30px',
+    fontSize: 24,
+
+    [BREAKPOINT]: {
+      fontSize: 18,
+    },
+  },
+}));
 
 export default function Room() {
-  const SERVER = process.env.REACT_APP_SERVER_NAME;
   const navigate = useNavigate();
 
   const { id } = useParams();
   const [room, setRoom] = useState(null);
 
+  const { classes } = useStyles();
+  const theme = useMantineTheme();
+
+  const secondaryColor =
+    theme.colorScheme === 'dark' ? theme.colors.dark[1] : theme.colors.gray[7];
+
   const handleStartGame = async () => {
-    await axios.get(`${SERVER}/room/${id}/start`);
+    await axios.get(`/api/room/${id}/start`);
     navigate(`/room/${id}/game`);
   };
 
@@ -45,120 +97,42 @@ export default function Room() {
     return () => clearInterval(timer);
   }, [id, navigate]);
 
-  /*
-  useEffect(() => {
-    // varianta cu sse care nu merge pentru ca nu se actualizeaza obiectul trimis
-    
-    // const source = new EventSource(`${SERVER}/room/${id}/events`);
-
-    // source.addEventListener('open', () => {
-    //   console.log('SSE opened!');
-    // });
-
-    // source.addEventListener('message', (e) => {
-    //   const data = JSON.parse(e.data);
-
-    //   const players = data.Players.sort(
-    //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    //   );
-    //   console.log(players);
-
-    //   const timestamp = new Date(players[0].createdAt || '');
-
-    //   let diferentaTimp;
-
-    //   if (!lastUpdate) diferentaTimp = 100;
-    //   else diferentaTimp = timestamp.getTime() - lastUpdate.getTime();
-
-    //   if (diferentaTimp > 0) {
-    //     console.log(data);
-    //     setRoom(data);
-    //     setLastUpdate(timestamp);
-    //   }
-    // });
-
-    // source.addEventListener('error', (e) => {
-    //   console.error('Error: ', e);
-    // });
-
-    // return () => {
-    //   source.close();
-    // };
-    
-    // const requestInterval = 2000;
-
-    // const timer = setInterval(() => {
-    //   axios.get(`${SERVER}/room/${id}`).then((res) => {
-    //     setRoom(res.data);
-    //   });
-    // }, requestInterval);
-
-    // return () => clearInterval(timer);
-  }, [SERVER, id]);
-*/
-
   return (
-    <Box
-      sx={{
-        bgcolor: 'background.paper',
-        minHeight: '100vh',
-      }}
-    >
-      <Appbar />
-      <Paper
-        sx={{
-          marginTop: '5vh',
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          minHeight: '300px',
-          minWidth: '60vw',
-          maxWidth: '80vw',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          padding: '20px',
-          textAlign: 'center',
-        }}
-      >
-        <Typography variant='h3' mb='30px'>
+    <div className={classes.wrapper}>
+      <Container size={700} className={classes.inner}>
+        <h1 className={classes.title}>
           Share the code with your friends and when you are ready press start
-        </Typography>
-        <Typography variant='h3' mb='30px'>
-          The code is: {id}
-        </Typography>
-        <Button variant='contained' color='primary' onClick={handleStartGame}>
+        </h1>
+        <h1 className={classes.description}>The code is: {id}</h1>
+        <Button variant='filled' size='lg' onClick={handleStartGame}>
           Start
         </Button>
-        <Container sx={{ py: 8 }} maxWidth='md'>
-          {/* End hero unit */}
-          <Grid container spacing={4}>
-            {room &&
-              room.Players.map((player) => (
-                <Grid item key={player.id} xs={12} sm={6} md={4}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                    variant='outlined'
-                  >
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography gutterBottom variant='h5' component='h2'>
-                        {player.name}
-                      </Typography>
-                      <Typography>{player.index_order}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-          </Grid>
-        </Container>
-      </Paper>
-    </Box>
+      </Container>
+      <Container my='md'>
+        <Grid>
+          {room &&
+            room.Players.map((player) => (
+              <Grid.Col xs={4} key={player.id}>
+                <Card shadow='sm' p='xl'>
+                  <Group position='center'>
+                    <Text weight={500} size='xl'>
+                      {player.name}
+                    </Text>
+                  </Group>
+                  <Group position='center'>
+                    <Text
+                      mt='10px'
+                      size='xl'
+                      style={{ color: secondaryColor, lineHeight: 1.5 }}
+                    >
+                      {player.index_order}
+                    </Text>
+                  </Group>
+                </Card>
+              </Grid.Col>
+            ))}
+        </Grid>
+      </Container>
+    </div>
   );
 }

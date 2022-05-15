@@ -1,36 +1,130 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import HomeIcon from '@mui/icons-material/Home';
-import ThemeSwitch from './ThemeSwitch';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import {
+  createStyles,
+  Header,
+  Menu,
+  Group,
+  Center,
+  Burger,
+  Container,
+  Text,
+} from '@mantine/core';
+import { useBooleanToggle } from '@mantine/hooks';
+import { ChevronDown } from 'tabler-icons-react';
 
-export default function Appbar() {
-  const navigate = useNavigate();
+const useStyles = createStyles((theme) => ({
+  header: {
+    backgroundColor: theme.colors[theme.primaryColor][9],
+    borderBottom: 0,
+  },
+
+  inner: {
+    height: 56,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  links: {
+    [theme.fn.smallerThan('sm')]: {
+      display: 'none',
+    },
+  },
+
+  burger: {
+    [theme.fn.largerThan('sm')]: {
+      display: 'none',
+    },
+  },
+
+  link: {
+    display: 'block',
+    lineHeight: 1,
+    padding: '8px 12px',
+    borderRadius: theme.radius.sm,
+    textDecoration: 'none',
+    color: theme.white,
+    fontSize: theme.fontSizes.sm,
+    fontWeight: 500,
+
+    '&:hover': {
+      backgroundColor:
+        theme.colors[theme.primaryColor][theme.colorScheme === 'dark' ? 7 : 5],
+    },
+  },
+
+  linkLabel: {
+    marginRight: 5,
+  },
+}));
+
+export default function Appbar({ links }) {
+  const [opened, toggleOpened] = useBooleanToggle(false);
+  const { classes } = useStyles();
+
+  const items = links.map((link) => {
+    const menuItems = link.links?.map((item) => (
+      <Menu.Item key={item.link}>{item.label}</Menu.Item>
+    ));
+
+    if (menuItems) {
+      return (
+        <Menu
+          key={link.label}
+          trigger='hover'
+          delay={0}
+          transitionDuration={0}
+          placement='end'
+          gutter={1}
+          control={
+            <a
+              href={link.link}
+              className={classes.link}
+              onClick={(event) => event.preventDefault()}
+            >
+              <Center>
+                <span className={classes.linkLabel}>{link.label}</span>
+                <ChevronDown size={12} />
+              </Center>
+            </a>
+          }
+        >
+          {menuItems}
+        </Menu>
+      );
+    }
+
+    return (
+      <a
+        key={link.label}
+        href={link.link}
+        className={classes.link}
+        onClick={(event) => event.preventDefault()}
+      >
+        {link.label}
+      </a>
+    );
+  });
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position='static'>
-        <Toolbar>
-          <IconButton
-            size='large'
-            edge='start'
-            color='inherit'
-            sx={{ mr: 2 }}
-            onClick={() => navigate('/')}
-          >
-            <HomeIcon />
-          </IconButton>
-          <Typography
-            variant='h6'
-            component='div'
-            sx={{ flexGrow: 1 }}
-          ></Typography>
-          <ThemeSwitch />
-        </Toolbar>
-      </AppBar>
-    </Box>
+    <Header height={56} className={classes.header}>
+      <Container>
+        <div className={classes.inner}>
+          <Text size='xl' color='white'>
+            The resistance
+          </Text>
+          <Group spacing={5} className={classes.links}>
+            {items}
+          </Group>
+          <Burger
+            opened={opened}
+            onClick={() => toggleOpened()}
+            className={classes.burger}
+            size='sm'
+            color='#fff'
+          />
+        </div>
+      </Container>
+    </Header>
   );
 }

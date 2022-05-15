@@ -1,5 +1,6 @@
 const sequelize = require('./sequelize');
 const { DataTypes } = require('sequelize');
+const Vote = require('./Vote');
 
 const Player = sequelize.define('Player', {
   id: {
@@ -32,5 +33,7 @@ const Player = sequelize.define('Player', {
     defaultValue: false,
   },
 });
+
+Player.hasMany(Vote, { onDelete: 'CASCADE' });
 
 module.exports = Player;
