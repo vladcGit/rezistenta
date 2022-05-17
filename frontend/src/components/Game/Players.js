@@ -10,7 +10,6 @@ import React from 'react';
 
 export default function Players({ room, userId }) {
   const spies = room?.Players?.filter((s) => s.is_spy).map((s) => s.id);
-  console.log(spies);
   const { colors } = useMantineTheme();
   return (
     <Container my='md'>

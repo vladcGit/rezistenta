@@ -106,6 +106,8 @@ app.post('/result/:id', async (req, res) => {
 
       // actualizare lider
       await actualizareLider(room.getDataValue('id'));
+
+      //todo verifica cine castiga sau pierde jocul
     }
     res.status(200).json({ message: 'ok' });
   } catch (e) {

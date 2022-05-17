@@ -97,7 +97,11 @@ export default function GamePage() {
 
   //websocket
   useEffect(() => {
-    const client = new w3cwebsocket('ws://localhost:3001/', 'echo-protocol');
+    const client = new w3cwebsocket(
+      'ws://192.168.100.28:3001/',
+      'echo-protocol'
+    );
+
     let timer;
     client.onopen = () => {
       console.log('WebSocket Client Connected');
@@ -109,7 +113,10 @@ export default function GamePage() {
       const data = JSON.parse(message.data);
       setRoom(data);
       if (data.Missions.length > 0) {
-        setMission(data.Missions.filter((m) => m.is_success === -1)[0]);
+        const copie = [...data.Missions];
+        copie.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMission(copie[0]);
+        // console.log(copie[0]);
       } else setMission(null);
     };
     return () => clearInterval(timer);
@@ -139,7 +146,7 @@ export default function GamePage() {
       (m) => m.is_starting === 1
     ).length;
     const numarJucatori =
-      necesarJucatori[misiuniPrecedente][room.Players.length - 5];
+      necesarJucatori[room.Players.length - 5][misiuniPrecedente];
 
     const createMission = async () => {
       setLoadingCreateMission(true);
@@ -210,6 +217,8 @@ export default function GamePage() {
   const VotPlecare = () => {
     const voteazaPlecare = async (result) => {
       setLoadingVoteMission(true);
+      setLoadingCreateMission(false);
+      setLoadingResultMission(false);
       await axios.post(`/api/mission/vote`, {
         result,
         PlayerId: user.id,
@@ -257,6 +266,11 @@ export default function GamePage() {
   };
 
   const PlecareFaraTine = () => {
+    React.useState(() => {
+      setLoadingCreateMission(false);
+      setLoadingResultMission(false);
+      setLoadingVoteMission(false);
+    }, []);
     return (
       <Container>
         <Text size='xl'>Wait for the result of the mission</Text>
@@ -268,6 +282,8 @@ export default function GamePage() {
   const Plecare = () => {
     const sendResultOfMission = async (result) => {
       setLoadingResultMission(true);
+      setLoadingCreateMission(false);
+      setLoadingVoteMission(false);
       await axios.post(`/api/mission/result/${mission.id}`, { result });
     };
     return (
@@ -335,9 +351,18 @@ export default function GamePage() {
           <Players room={room} userId={user.id} />
           <Divider my='xl' />
           {room.Missions?.length > 0 &&
-            room.Missions.filter((m) => m.is_success !== -1).map((misiune) => (
-              <Mission mission={misiune} key={misiune.id} />
-            ))}
+            room.Missions.filter(
+              (m) =>
+                m.id_creator !== room.Players.filter((p) => p.is_lider)[0].id
+            )
+              .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+              .map((misiune) => (
+                <Mission
+                  mission={misiune}
+                  key={misiune.id}
+                  players={room.Players}
+                />
+              ))}
           {user.is_lider &&
             mission?.id_creator !== user.id &&
             mission?.is_starting !== -1 && <PropunerePlecare />}

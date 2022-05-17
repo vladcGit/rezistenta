@@ -23,9 +23,6 @@ if (process.env.DATABASE_URL) {
   sequelize = new Sequelize({
     storage: 'models/database.db',
     dialect: 'sqlite',
-    define: {
-      timestamps: false,
-    },
     logging: false,
   });
 }

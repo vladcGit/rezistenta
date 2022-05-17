@@ -81,7 +81,10 @@ export default function Room() {
 
   //websocket
   useEffect(() => {
-    const client = new w3cwebsocket('ws://localhost:3001/', 'echo-protocol');
+    const client = new w3cwebsocket(
+      'ws://192.168.100.28:3001/',
+      'echo-protocol'
+    );
     let timer;
     client.onopen = () => {
       console.log('WebSocket Client Connected');
