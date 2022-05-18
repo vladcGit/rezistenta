@@ -90,9 +90,10 @@ export default function GamePage() {
   const [spies, setSpies] = useState([]);
   const [selectat, setSelectat] = useState([]);
   const [mission, setMission] = useState(null);
+
   const [loadingCreateMission, setLoadingCreateMission] = useState(false);
+  const [loadingVotePlayers, setLoadingVotePlayers] = useState(false);
   const [loadingVoteMission, setLoadingVoteMission] = useState(false);
-  const [loadingResultMission, setLoadingResultMission] = useState(false);
 
   const { classes } = useStyles();
   const { colors } = useMantineTheme();
@@ -149,6 +150,13 @@ export default function GamePage() {
     // console.log(room);
   }, [room, user]);
 
+  useEffect(() => {
+    if (!mission || !user) return;
+
+    if (!mission.Votes?.map((v) => v.PlayerId).includes(user.id))
+      setLoadingVotePlayers(false);
+  }, [mission, user]);
+
   const PropunerePlecare = () => {
     const necesarJucatori = [
       [2, 3, 2, 3, 3],
@@ -170,7 +178,6 @@ export default function GamePage() {
         players: selectat,
         id_creator: user.id,
       });
-      setLoadingCreateMission(false);
       sendUpdate();
     };
 
@@ -182,7 +189,7 @@ export default function GamePage() {
         </h3>
         <Container my='sm'>
           <Grid>
-            {room.Players.map((player, index) => (
+            {room.Players.map((player) => (
               <Grid.Col xs={4} key={player.id}>
                 <Card
                   shadow='sm'
@@ -233,15 +240,15 @@ export default function GamePage() {
 
   const VotPlecare = () => {
     const voteazaPlecare = async (result) => {
-      setLoadingVoteMission(true);
-      setLoadingCreateMission(false);
-      setLoadingResultMission(false);
+      setLoadingVotePlayers(true);
       await axios.post(`/api/mission/vote`, {
         result,
         PlayerId: user.id,
         MissionId: mission.id,
       });
       sendUpdate();
+      setLoadingCreateMission(false);
+      setLoadingVoteMission(false);
     };
 
     return (
@@ -262,7 +269,7 @@ export default function GamePage() {
                 size='lg'
                 m={10}
                 onClick={() => voteazaPlecare(true)}
-                loading={loadingVoteMission}
+                loading={loadingVotePlayers}
               >
                 Accept
               </Button>
@@ -272,7 +279,7 @@ export default function GamePage() {
                 size='lg'
                 m={10}
                 onClick={() => voteazaPlecare(false)}
-                loading={loadingVoteMission}
+                loading={loadingVotePlayers}
               >
                 Refuse
               </Button>
@@ -284,11 +291,7 @@ export default function GamePage() {
   };
 
   const PlecareFaraTine = () => {
-    React.useState(() => {
-      setLoadingCreateMission(false);
-      setLoadingResultMission(false);
-      setLoadingVoteMission(false);
-    }, []);
+    React.useState(() => {}, []);
     return (
       <Container>
         <Text size='xl'>Wait for the result of the mission</Text>
@@ -299,14 +302,10 @@ export default function GamePage() {
 
   const Plecare = () => {
     useEffect(() => {
-      return () => {
-        setLoadingVoteMission(false);
-      };
+      return () => {};
     }, []);
     const sendResultOfMission = async (result) => {
-      setLoadingResultMission(true);
-      setLoadingCreateMission(false);
-      setLoadingVoteMission(false);
+      setLoadingVoteMission(true);
       await axios.post(`/api/mission/result/${mission.id}`, { result });
       sendUpdate();
     };
@@ -315,10 +314,12 @@ export default function GamePage() {
         <h2 className={classes.description}>
           Vote for the result of the mission
         </h2>
+        {console.log(mission.Players.map((p) => p.id))}
+        {console.log(user.id)}
         <Button
           m='xl'
           size='lg'
-          loading={loadingResultMission}
+          loading={loadingVoteMission}
           onClick={() => sendResultOfMission(true)}
         >
           Success
@@ -329,7 +330,7 @@ export default function GamePage() {
             m='xl'
             size='lg'
             color='red'
-            loading={loadingResultMission}
+            loading={loadingVoteMission}
             onClick={() => sendResultOfMission(false)}
           >
             Fail
@@ -417,7 +418,15 @@ export default function GamePage() {
                   <Accordion.Item
                     label={
                       misiune.is_starting === 1
-                        ? `Mission ${index + 1}`
+                        ? `Mission ${
+                            room.Missions.filter((m) => m.is_starting === 1)
+                              .sort(
+                                (a, b) =>
+                                  new Date(a.createdAt) - new Date(b.createdAt)
+                              )
+                              .map((m) => m.id)
+                              .indexOf(misiune.id) + 1
+                          }`
                         : 'Mission not started'
                     }
                     key={misiune.id}

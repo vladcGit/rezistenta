@@ -1,4 +1,4 @@
-import { Container, Divider, Text, useMantineTheme } from '@mantine/core';
+import { Container, Text, useMantineTheme } from '@mantine/core';
 import React from 'react';
 
 export default function Mission({ mission, players }) {
@@ -57,7 +57,6 @@ export default function Mission({ mission, players }) {
           </Text>
         ))}
       </Container>
-      <Divider my='xl' />
     </>
   );
 }
