@@ -1,9 +1,6 @@
 const express = require('express');
-const sendEvent = require('../events');
-const Mission = require('../models/Mission');
 const Player = require('../models/Player');
 const Room = require('../models/Room');
-const Vote = require('../models/Vote');
 const app = express();
 
 app.post('/new', async (req, res) => {
@@ -100,22 +97,6 @@ app.get('/:id/start', async (req, res) => {
     await room.update({ is_started: true });
 
     return res.status(200);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json(e);
-  }
-});
-
-app.get('/:id/events', async (req, res) => {
-  try {
-    if (req.headers.accept !== 'text/event-stream') return res.status(400);
-
-    // trimit promisiune
-    const room = Room.findByPk(req.params.id, {
-      include: [{ model: Player, include: [Vote] }, { model: Mission }],
-    });
-
-    sendEvent(req, res, room);
   } catch (e) {
     console.error(e);
     res.status(500).json(e);

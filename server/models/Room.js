@@ -18,6 +18,9 @@ const Room = sequelize.define('Room', {
     allowNull: false,
     defaultValue: false,
   },
+  result: {
+    type: DataTypes.BOOLEAN,
+  },
 });
 
 Room.hasMany(Player, { onDelete: 'CASCADE' });

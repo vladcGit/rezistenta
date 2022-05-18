@@ -66,10 +66,23 @@ app.post('/vote', async (req, res) => {
       const resultOfVote = noVotesFail >= noVotesSuccess ? 0 : 1;
       await mission.update({ is_starting: resultOfVote });
 
-      //todo daca sunt 5 propuneri in care nu se pleaca se pierde jocul
-
       // actualizare lider in caz de esec
       if (resultOfVote === 0) await actualizareLider(room.getDataValue('id'));
+
+      //todo daca sunt 5 propuneri in care nu se pleaca se pierde jocul
+      const missions = await room.getMissions();
+      let indexMisiune = missions.length - 1;
+      if (mission.length > 0) {
+        let i = 0;
+        while (indexMisiune >= 0) {
+          if (missions[indexMisiune].is_starting === 0) i++;
+          if (i === 5) {
+            await room.update({ is_finished: true, result: false });
+            break;
+          } else i = 0;
+          indexMisiune--;
+        }
+      }
     }
 
     res.status(200).json(mission);
@@ -108,6 +121,13 @@ app.post('/result/:id', async (req, res) => {
       await actualizareLider(room.getDataValue('id'));
 
       //todo verifica cine castiga sau pierde jocul
+      const missions = await room.getMissions();
+      const passedMissions = missions.filter((m) => m.is_success === 1).length;
+      const failedMissions = missions.filter((m) => m.is_success === 0).length;
+      if (passedMissions === 3)
+        await room.update({ is_finished: true, result: true });
+      else if (failedMissions === 3)
+        await room.update({ is_finished: true, result: false });
     }
     res.status(200).json({ message: 'ok' });
   } catch (e) {

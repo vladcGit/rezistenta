@@ -112,7 +112,7 @@ export default function GamePage() {
     client.onmessage = (message) => {
       const data = JSON.parse(message.data);
       setRoom(data);
-      if (data.Missions.length > 0) {
+      if (data?.Missions.length > 0) {
         const copie = [...data.Missions];
         copie.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setMission(copie[0]);
@@ -136,11 +136,12 @@ export default function GamePage() {
 
   const PropunerePlecare = () => {
     const necesarJucatori = [
-      [2, 2, 2, 3, 3, 3],
-      [3, 3, 3, 4, 4, 4],
-      [2, 4, 3, 4, 4, 4],
-      [3, 3, 4, 5, 5, 5],
-      [3, 4, 4, 5, 5, 5],
+      [2, 3, 2, 3, 3],
+      [2, 3, 4, 3, 4],
+      [2, 3, 3, 4, 4],
+      [3, 4, 4, 5, 5],
+      [3, 4, 4, 5, 5],
+      [3, 4, 4, 5, 5],
     ];
     const misiuniPrecedente = room.Missions.map(
       (m) => m.is_starting === 1
@@ -315,9 +316,41 @@ export default function GamePage() {
     );
   };
 
+  function JocTerminat() {
+    return (
+      <Container
+        className={classes.inner}
+        my='xl'
+        p='xl'
+        style={{
+          backgroundColor: room.result ? colors.blue[9] : colors.red[9],
+          borderRadius: '20px',
+        }}
+      >
+        {room.result ? (
+          <Text className={classes.title}>The resistance won</Text>
+        ) : (
+          <Text className={classes.title}>The spies won</Text>
+        )}
+
+        <Text className={classes.subtitle}>The spies were:</Text>
+        {room.Players.filter((p) => p.is_spy).map((player) => (
+          <Text
+            className={classes.subtitle}
+            m='md'
+            component='span'
+            key={player.id}
+          >
+            {player.name}
+          </Text>
+        ))}
+      </Container>
+    );
+  }
+
   return (
     <div className={classes.wrapper}>
-      {user && room && (
+      {user && room && !room.is_finished && (
         <Container
           className={classes.inner}
           // sx={{ backgroundColor: user.is_spy ? colors.red[6] : colors.blue[9] }}
@@ -378,6 +411,7 @@ export default function GamePage() {
             ))}
         </Container>
       )}
+      {user && room && room.is_finished && JocTerminat()}
     </div>
   );
 }
