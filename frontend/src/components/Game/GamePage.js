@@ -9,6 +9,7 @@ import {
   useMantineTheme,
   Button,
   Loader,
+  Accordion,
 } from '@mantine/core';
 
 import axios from 'axios';
@@ -405,19 +406,26 @@ export default function GamePage() {
           </h1>
           <Players room={room} userId={user.id} />
           <Divider my='xl' />
-          {room.Missions?.length > 0 &&
-            room.Missions.filter(
-              (m) =>
-                m.id_creator !== room.Players.filter((p) => p.is_lider)[0].id
-            )
-              .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-              .map((misiune) => (
-                <Mission
-                  mission={misiune}
-                  key={misiune.id}
-                  players={room.Players}
-                />
-              ))}
+          <Accordion multiple>
+            {room.Missions?.length > 0 &&
+              room.Missions.filter(
+                (m) =>
+                  m.id_creator !== room.Players.filter((p) => p.is_lider)[0].id
+              )
+                .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                .map((misiune, index) => (
+                  <Accordion.Item
+                    label={
+                      misiune.is_starting === 1
+                        ? `Mission ${index + 1}`
+                        : 'Mission not started'
+                    }
+                    key={misiune.id}
+                  >
+                    <Mission mission={misiune} players={room.Players} />
+                  </Accordion.Item>
+                ))}
+          </Accordion>
           {user.is_lider &&
             mission?.id_creator !== user.id &&
             mission?.is_starting !== -1 && <PropunerePlecare />}
