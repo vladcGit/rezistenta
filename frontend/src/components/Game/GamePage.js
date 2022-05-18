@@ -110,7 +110,14 @@ export default function GamePage() {
       } else setMission(null);
     };
     fetchRoom();
-    const newSocket = socketClient('ws://192.168.100.28:3001/');
+
+    let webSocketRoute;
+    if (process.env.NODE_ENV === 'production')
+      webSocketRoute = `ws://${window.location.host}`;
+    else webSocketRoute = `ws://192.168.100.28:3001`;
+    const newSocket = socketClient(webSocketRoute, {
+      query: { id },
+    });
     setsocket(newSocket);
     return () => newSocket.disconnect();
   }, [id]);

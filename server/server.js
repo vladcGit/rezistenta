@@ -34,7 +34,12 @@ let noOfRequests = 0;
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 io.on('connection', (socket) => {
   console.log('New client connected');
-  socket.emit('connection', null);
+  const { id } = socket.handshake.query;
+  const roomName = 'room-' + id;
+
+  socket.join(roomName);
+
+  io.to(roomName).emit('connection', null);
   socket.on('update', async function (message) {
     let response;
     try {
@@ -51,7 +56,7 @@ io.on('connection', (socket) => {
       console.log(e);
       response = JSON.stringify(e);
     } finally {
-      io.emit('room', response);
+      io.to(roomName).emit('room', response);
       console.log(++noOfRequests);
     }
   });

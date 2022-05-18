@@ -80,7 +80,13 @@ export default function Room() {
   };
 
   useEffect(() => {
-    const socket = socketClient('ws://192.168.100.28:3001/');
+    let webSocketRoute;
+    if (process.env.NODE_ENV === 'production')
+      webSocketRoute = `ws://${window.location.host}`;
+    else webSocketRoute = `ws://192.168.100.28:3001`;
+    const socket = socketClient(webSocketRoute, {
+      query: { id },
+    });
     socket.emit('update', JSON.stringify({ id }));
     socket.on('room', (message) => {
       const data = JSON.parse(message);
