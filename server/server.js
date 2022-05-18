@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const sequelize = require('./models/sequelize');
 
 const app = express();
@@ -61,4 +62,11 @@ io.on('connection', (socket) => {
     }
   });
   socket.on('disconnect', () => console.log('client deconectat'));
+});
+
+const buildPath = path.join(__dirname, 'build');
+app.use(express.static(buildPath));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
 });
