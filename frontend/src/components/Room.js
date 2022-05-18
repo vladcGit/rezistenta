@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { w3cwebsocket } from 'websocket';
+import socketClient from 'socket.io-client';
 import {
   Button,
   Grid,
@@ -79,26 +79,16 @@ export default function Room() {
     navigate(`/room/${id}/game`);
   };
 
-  //websocket
   useEffect(() => {
-    const client = new w3cwebsocket(
-      'ws://192.168.100.28:3001/',
-      'echo-protocol'
-    );
-    let timer;
-    client.onopen = () => {
-      console.log('WebSocket Client Connected');
-      timer = setInterval(() => {
-        client.send(JSON.stringify({ id }));
-      }, 2000);
-    };
-    client.onmessage = (message) => {
-      // console.log(JSON.parse(message.data));
-      const data = JSON.parse(message.data);
+    const socket = socketClient('ws://192.168.100.28:3001/');
+    socket.emit('update', JSON.stringify({ id }));
+    socket.on('room', (message) => {
+      const data = JSON.parse(message);
+      console.log(data);
       setRoom(data);
-      if (data.is_started) navigate(`/room/${id}/game`);
-    };
-    return () => clearInterval(timer);
+      if (data?.is_started) navigate(`/room/${id}/game`);
+    });
+    return () => socket.disconnect();
   }, [id, navigate]);
 
   return (

@@ -46,6 +46,7 @@ export default function updateGradient() {
   const color2 = `rgb(${r2}, ${g2}, ${b2})`;
 
   const gradient = document.getElementById('gradient');
+  if (!gradient) return;
   gradient.style.background = `-webkit-gradient(linear, left top, right top, from(${color1}), to(${color2}))`;
 
   gradient.style.background = `-moz-linear-gradient(left, ${color1} 0%, ${color2} 100%)`;

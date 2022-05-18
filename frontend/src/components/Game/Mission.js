@@ -44,7 +44,7 @@ export default function Mission({ mission, players }) {
           Players that voted for the mission:
         </Text>
         {mission.Votes.filter((v) => v.result).map((vote) => (
-          <Text size='xl' mx='md' component='span'>
+          <Text size='xl' mx='md' component='span' key={vote.id}>
             {players.filter((p) => p.id === vote.PlayerId)[0].name + '\t'}
           </Text>
         ))}
@@ -52,7 +52,7 @@ export default function Mission({ mission, players }) {
           Players that voted against the mission:
         </Text>
         {mission.Votes.filter((v) => !v.result).map((vote) => (
-          <Text size='xl' mx='md' component='span'>
+          <Text size='xl' mx='md' component='span' key={vote.id}>
             {players.filter((p) => p.id === vote.PlayerId)[0].name + '\t'}
           </Text>
         ))}

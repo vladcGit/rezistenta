@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./models/sequelize');
-const WebSocketServer = require('websocket').server;
 
 const app = express();
 app.use(express.json());
@@ -29,34 +28,32 @@ const server = app.listen(port, async () => {
   console.log(`Pornit pe portul ${port}`);
 });
 
+let noOfRequests = 0;
+
 // web-socket
+const io = require('socket.io')(server, { cors: { origin: '*' } });
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  socket.emit('connection', null);
+  socket.on('update', async function (message) {
+    let response;
+    try {
+      const { id } = JSON.parse(message);
+      const room = await Room.findByPk(parseInt(id), {
+        include: [
+          { model: Player },
+          { model: Mission, include: [Player, Vote] },
+        ],
+      });
 
-const wsServer = new WebSocketServer({
-  httpServer: server,
-});
-
-wsServer.on('request', function (request) {
-  const connection = request.accept('echo-protocol', request.origin);
-  connection.on('message', async function (message) {
-    if (message.type === 'utf8') {
-      try {
-        const { id } = JSON.parse(message.utf8Data);
-
-        const room = await Room.findByPk(parseInt(id), {
-          include: [
-            { model: Player },
-            { model: Mission, include: [Player, Vote] },
-          ],
-        });
-
-        connection.sendUTF(JSON.stringify(room));
-      } catch (e) {
-        console.log(e);
-        connection.sendUTF(JSON.stringify(e));
-      }
+      response = JSON.stringify(room);
+    } catch (e) {
+      console.log(e);
+      response = JSON.stringify(e);
+    } finally {
+      io.emit('room', response);
+      console.log(++noOfRequests);
     }
   });
-  connection.on('close', function (connection) {
-    console.log(new Date() + 'Peer disconnected.');
-  });
+  socket.on('disconnect', () => console.log('client deconectat'));
 });

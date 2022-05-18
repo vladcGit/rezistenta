@@ -1,6 +1,8 @@
 const express = require('express');
+const Mission = require('../models/Mission');
 const Player = require('../models/Player');
 const Room = require('../models/Room');
+const Vote = require('../models/Vote');
 const app = express();
 
 app.post('/new', async (req, res) => {
@@ -38,18 +40,6 @@ app.post('/:id/player/new', async (req, res) => {
     });
 
     return res.status(201).json(player);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json(e);
-  }
-});
-
-app.get('/:id', async (req, res) => {
-  try {
-    const room = await Room.findByPk(req.params.id, { include: Player });
-    if (room == null)
-      return res.status(400).json({ error: 'That room does not exist' });
-    return res.status(200).json(room);
   } catch (e) {
     console.error(e);
     res.status(500).json(e);
@@ -96,7 +86,21 @@ app.get('/:id/start', async (req, res) => {
 
     await room.update({ is_started: true });
 
-    return res.status(200);
+    return res.status(200).json({ message: 'success' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json(e);
+  }
+});
+
+app.get('/:id', async (req, res) => {
+  try {
+    const room = await Room.findByPk(req.params.id, {
+      include: [{ model: Player }, { model: Mission, include: [Player, Vote] }],
+    });
+    if (room == null)
+      return res.status(400).json({ error: 'That room does not exist' });
+    return res.status(200).json(room);
   } catch (e) {
     console.error(e);
     res.status(500).json(e);

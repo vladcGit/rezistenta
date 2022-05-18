@@ -14,7 +14,7 @@ import {
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { w3cwebsocket } from 'websocket';
+import socketClient from 'socket.io-client';
 import Mission from './Mission';
 import Players from './Players';
 
@@ -83,6 +83,7 @@ const useStyles = createStyles((theme) => ({
 export default function GamePage() {
   const { id } = useParams();
 
+  const [socket, setsocket] = useState(null);
   const [room, setRoom] = useState(null);
   const [user, setUser] = useState(null);
   const [spies, setSpies] = useState([]);
@@ -95,22 +96,35 @@ export default function GamePage() {
   const { classes } = useStyles();
   const { colors } = useMantineTheme();
 
-  //websocket
   useEffect(() => {
-    const client = new w3cwebsocket(
-      'ws://192.168.100.28:3001/',
-      'echo-protocol'
-    );
-
-    let timer;
-    client.onopen = () => {
-      console.log('WebSocket Client Connected');
-      timer = setInterval(() => {
-        client.send(JSON.stringify({ id }));
-      }, 2000);
+    const fetchRoom = async () => {
+      const res = await axios.get(`/api/room/${id}`);
+      setRoom(res.data);
+      if (res.data?.Missions.length > 0) {
+        const copie = [...res.data.Missions];
+        copie.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMission(copie[0]);
+        // console.log(copie[0]);
+      } else setMission(null);
     };
-    client.onmessage = (message) => {
-      const data = JSON.parse(message.data);
+    fetchRoom();
+    const newSocket = socketClient('ws://192.168.100.28:3001/');
+    setsocket(newSocket);
+    return () => newSocket.disconnect();
+  }, [id]);
+
+  //websocket
+
+  const sendUpdate = () => {
+    socket.emit('update', JSON.stringify({ id }));
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.emit('update', JSON.stringify({ id }));
+    socket.on('room', (message) => {
+      const data = JSON.parse(message);
+      console.log(data);
       setRoom(data);
       if (data?.Missions.length > 0) {
         const copie = [...data.Missions];
@@ -118,9 +132,9 @@ export default function GamePage() {
         setMission(copie[0]);
         // console.log(copie[0]);
       } else setMission(null);
-    };
-    return () => clearInterval(timer);
-  }, [id]);
+    });
+    return () => socket.disconnect();
+  }, [socket, id]);
 
   //get user
   useEffect(() => {
@@ -156,6 +170,7 @@ export default function GamePage() {
         id_creator: user.id,
       });
       setLoadingCreateMission(false);
+      sendUpdate();
     };
 
     return (
@@ -225,6 +240,7 @@ export default function GamePage() {
         PlayerId: user.id,
         MissionId: mission.id,
       });
+      sendUpdate();
     };
 
     return (
@@ -281,11 +297,17 @@ export default function GamePage() {
   };
 
   const Plecare = () => {
+    useEffect(() => {
+      return () => {
+        setLoadingVoteMission(false);
+      };
+    }, []);
     const sendResultOfMission = async (result) => {
       setLoadingResultMission(true);
       setLoadingCreateMission(false);
       setLoadingVoteMission(false);
       await axios.post(`/api/mission/result/${mission.id}`, { result });
+      sendUpdate();
     };
     return (
       <Container>
