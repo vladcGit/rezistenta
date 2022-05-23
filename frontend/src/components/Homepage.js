@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createStyles, Container, Text, Button, Input } from '@mantine/core';
 import updateGradient from './gradient';
 import { hexToRgb } from '../util';
+import { showNotification } from '@mantine/notifications';
 
 const BREAKPOINT = '@media (max-width: 755px)';
 
@@ -89,6 +90,12 @@ export default function Homepage() {
   }, []);
 
   const handleCreateRoom = async () => {
+    if (name.length < 3)
+      return showNotification({
+        title: 'Error',
+        message: 'The name must have at least 3 letters',
+        color: 'red',
+      });
     const resRoom = await axios.post(`/api/room/new`);
     const { id } = resRoom.data;
     await axios.post(

@@ -17,11 +17,7 @@ const Vote = require('./models/Vote');
 app.use('/api/room', require('./routes/RoomRoutes'));
 app.use('/api/mission', require('./routes/missionRoutes'));
 
-app.get('/', (req, res) => {
-  res.send('hello');
-});
-
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 const server = app.listen(port, async () => {
   await sequelize.authenticate();
@@ -29,12 +25,9 @@ const server = app.listen(port, async () => {
   console.log(`Pornit pe portul ${port}`);
 });
 
-let noOfRequests = 0;
-
 // web-socket
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 io.on('connection', (socket) => {
-  console.log('New client connected');
   const { id } = socket.handshake.query;
   const roomName = 'room-' + id;
 
@@ -58,10 +51,8 @@ io.on('connection', (socket) => {
       response = JSON.stringify(e);
     } finally {
       io.to(roomName).emit('room', response);
-      console.log(++noOfRequests);
     }
   });
-  socket.on('disconnect', () => console.log('client deconectat'));
 });
 
 const buildPath = path.join(__dirname, 'build');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import socketClient from 'socket.io-client';
+import { io } from 'socket.io-client';
 import {
   Button,
   Grid,
@@ -80,11 +80,7 @@ export default function Room() {
   };
 
   useEffect(() => {
-    let webSocketRoute;
-    if (process.env.NODE_ENV === 'production')
-      webSocketRoute = `ws://${window.location.host}`;
-    else webSocketRoute = `ws://192.168.100.28:3001`;
-    const socket = socketClient(webSocketRoute, {
+    const socket = io('/', {
       query: { id },
     });
     socket.emit('update', JSON.stringify({ id }));

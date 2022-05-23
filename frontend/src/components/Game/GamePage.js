@@ -11,11 +11,12 @@ import {
   Loader,
   Accordion,
 } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import socketClient from 'socket.io-client';
+import { io } from 'socket.io-client';
 import Mission from './Mission';
 import Players from './Players';
 
@@ -111,11 +112,7 @@ export default function GamePage() {
     };
     fetchRoom();
 
-    let webSocketRoute;
-    if (process.env.NODE_ENV === 'production')
-      webSocketRoute = `ws://${window.location.host}`;
-    else webSocketRoute = `ws://192.168.100.28:3001`;
-    const newSocket = socketClient(webSocketRoute, {
+    const newSocket = io('/', {
       query: { id },
     });
     setsocket(newSocket);
@@ -218,7 +215,12 @@ export default function GamePage() {
                       const copie = [...selectat];
                       copie.push(player.id);
                       setSelectat(copie);
-                    } else alert('prea multi');
+                    } else
+                      showNotification({
+                        title: 'Error',
+                        message: 'Too many players selected',
+                        color: 'red',
+                      });
                   }}
                 >
                   <Group position='center'>
@@ -308,9 +310,6 @@ export default function GamePage() {
   };
 
   const Plecare = () => {
-    useEffect(() => {
-      return () => {};
-    }, []);
     const sendResultOfMission = async (result) => {
       setLoadingVoteMission(true);
       await axios.post(`/api/mission/result/${mission.id}`, { result });
