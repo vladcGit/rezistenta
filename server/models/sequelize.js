@@ -8,9 +8,6 @@ if (process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',
-    define: {
-      timestamps: false,
-    },
     logging: false,
     dialectOptions: {
       ssl: {

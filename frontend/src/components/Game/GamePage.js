@@ -170,7 +170,7 @@ export default function GamePage() {
       [3, 4, 4, 5, 5],
       [3, 4, 4, 5, 5],
     ];
-    const misiuniPrecedente = room.Missions.map(
+    const misiuniPrecedente = room.Missions.filter(
       (m) => m.is_starting === 1
     ).length;
     const numarJucatori =
